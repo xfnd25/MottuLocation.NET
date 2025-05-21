@@ -90,8 +90,6 @@ Siga estes passos para configurar e executar a API em sua máquina:
 Clone o Repositório:
 Se o seu projeto estiver em um repositório Git, clone-o:
 
-Bash
-
 git clone <URL_DO_SEU_REPOSITORIO>
 cd MottuLocation
 Caso contrário, apenas navegue até a pasta raiz do projeto.
