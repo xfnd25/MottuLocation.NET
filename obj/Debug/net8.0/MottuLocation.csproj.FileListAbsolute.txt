@@ -291,3 +291,4 @@ C:\Users\xfndc\Desktop\MottuLocation\obj\Debug\net8.0\refint\MottuLocation.dll
 C:\Users\xfndc\Desktop\MottuLocation\obj\Debug\net8.0\MottuLocation.pdb
 C:\Users\xfndc\Desktop\MottuLocation\obj\Debug\net8.0\MottuLocation.genruntimeconfig.cache
 C:\Users\xfndc\Desktop\MottuLocation\obj\Debug\net8.0\ref\MottuLocation.dll
+C:\Users\xfndc\Desktop\MottuLocation\obj\Debug\net8.0\MottuLocation.sourcelink.json
