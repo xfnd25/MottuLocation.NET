@@ -151,3 +151,5 @@ Exemplos:
 GET /api/movimentacao/moto/1
 
 GET /api/movimentacao/moto/1?page=0&size=5&sortBy=dataHora
+
+...
