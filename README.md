@@ -8,6 +8,17 @@
 
 Esta é a API de backend para o sistema de localização de motos da Mottu. Ela permite o gerenciamento de motos, sensores e o registro de movimentações.
 
+## Justificativa da Arquitetura
+
+O projeto foi estruturado seguindo os princípios de uma **Arquitetura em Camadas (Layered Architecture)**, buscando uma clara separação de responsabilidades, o que facilita a manutenção, testabilidade e escalabilidade da aplicação. As camadas são:
+
+* **`Mottu.API` (Camada de Apresentação):** Responsável por expor os endpoints da API. Lida com as requisições HTTP, validação de DTOs e serialização das respostas. Utiliza o padrão de Controllers do ASP.NET Core.
+* **`Mottu.Application` (Camada de Aplicação):** Contém a lógica de negócio e orquestra as operações. Utiliza o padrão de **Services** para encapsular as regras e coordenar o acesso aos repositórios. Também é responsável pelo mapeamento entre DTOs e Entidades de domínio.
+* **`Mottu.Domain` (Camada de Domínio):** O coração do software. Contém as entidades de negócio (`Motorcycle`, `Deliveryman`, `Rental`), as interfaces dos repositórios e os serviços de domínio. Representa o conhecimento e as regras do negócio.
+* **`Mottu.Infrastructure` (Camada de Infraestrutura):** Implementa os detalhes técnicos. Contém a implementação concreta dos repositórios utilizando o **Entity Framework Core** para acesso ao banco de dados, além de outras dependências externas (como serviços de mensageria, logging, etc.).
+
+Essa arquitetura, inspirada em conceitos do DDD (Domain-Driven Design), garante que o domínio do negócio permaneça limpo e independente de tecnologias de infraestrutura.
+
 ## Tecnologias Utilizadas
 
 * **.NET 8:** Framework de desenvolvimento backend da Microsoft.
