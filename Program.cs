@@ -5,15 +5,31 @@ using Microsoft.EntityFrameworkCore;
 using MottuLocation.Data;
 using MottuLocation.Repositories;
 using MottuLocation.Services;
-using MottuLocation.Profiles; // Adicione esta linha
+using MottuLocation.Profiles;
+using System.IO; // Adicione esta linha
+using System; // Adicione esta linha
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// ATUALIZAÇÃO DO SWAGGER ABAIXO
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Mottu Location API",
+        Version = "v1",
+        Description = "API para gerenciamento e localização de motos, sensores e suas movimentações."
+    });
+
+    // Configura o Swagger para usar o arquivo XML gerado pelos comentários
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
+});
 
 // Configurando o DbContext para Oracle
 builder.Services.AddDbContext<MottuLocationDbContext>(options =>
@@ -40,9 +56,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

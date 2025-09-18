@@ -1,166 +1,118 @@
-# RM555317 - FERNANDO FONTES
-# RM556814 - GUILHERME JARDIM
+Markdown
 
+# API - Mottu Location .NET
 
-# LINK DO REPOSITÓRIO: https://github.com/xfnd25/MottuLocation.NET
+[![Status do Projeto](https://img.shields.io/badge/status-concluído-green)](https://github.com/xfnd25/MottuLocation.NET)
 
-# Mottu Location API
-
-Esta é a API de backend para o sistema de localização de motos da Mottu. Ela permite o gerenciamento de motos, sensores e o registro de movimentações.
-
-## Justificativa da Arquitetura
-
-O projeto foi estruturado seguindo os princípios de uma **Arquitetura em Camadas (Layered Architecture)**, buscando uma clara separação de responsabilidades, o que facilita a manutenção, testabilidade e escalabilidade da aplicação. As camadas são:
-
-* **`Mottu.API` (Camada de Apresentação):** Responsável por expor os endpoints da API. Lida com as requisições HTTP, validação de DTOs e serialização das respostas. Utiliza o padrão de Controllers do ASP.NET Core.
-* **`Mottu.Application` (Camada de Aplicação):** Contém a lógica de negócio e orquestra as operações. Utiliza o padrão de **Services** para encapsular as regras e coordenar o acesso aos repositórios. Também é responsável pelo mapeamento entre DTOs e Entidades de domínio.
-* **`Mottu.Domain` (Camada de Domínio):** O coração do software. Contém as entidades de negócio (`Motorcycle`, `Deliveryman`, `Rental`), as interfaces dos repositórios e os serviços de domínio. Representa o conhecimento e as regras do negócio.
-* **`Mottu.Infrastructure` (Camada de Infraestrutura):** Implementa os detalhes técnicos. Contém a implementação concreta dos repositórios utilizando o **Entity Framework Core** para acesso ao banco de dados, além de outras dependências externas (como serviços de mensageria, logging, etc.).
-
-Essa arquitetura, inspirada em conceitos do DDD (Domain-Driven Design), garante que o domínio do negócio permaneça limpo e independente de tecnologias de infraestrutura.
-
-## Tecnologias Utilizadas
-
-* **.NET 8:** Framework de desenvolvimento backend da Microsoft.
-* **ASP.NET Core:** Plataforma para construir aplicações web modernas.
-* **Entity Framework Core:** ORM (Object-Relational Mapper) para interagir com o banco de dados.
-* **Oracle:** Banco de dados utilizado para persistência dos dados.
-* **AutoMapper:** Biblioteca para mapeamento de objetos.
-* **Swashbuckle.AspNetCore:** Ferramenta para geração de documentação OpenAPI (Swagger).
-
-## Pré-requisitos
-
-Antes de executar a API, certifique-se de ter o seguinte instalado no seu sistema:
-
-* **.NET 8 SDK:** Você pode baixá-lo em [https://dotnet.microsoft.com/download/dotnet/8.0](https://dotnet.microsoft.com/download/dotnet/8.0).
-* **Acesso a um servidor Oracle:** A API requer uma instância do banco de dados Oracle configurada.
-* **Postman ou outra ferramenta de teste de API:** Recomendado para interagir com os endpoints da API.
-
-## Documentação da API (Swagger)
-
-A API utiliza o Swagger para gerar automaticamente a documentação dos endpoints. Para acessar a documentação:
-
-1.  Abra o seu navegador.
-2.  Navegue até o endpoint do Swagger (geralmente em `http://localhost:5xxx/swagger/index.html`, substituindo `5xxx` pela porta em que a sua API está rodando).
-
-Na página do Swagger, você poderá explorar todos os endpoints disponíveis, os métodos HTTP, os parâmetros, os corpos das requisições e os exemplos de respostas.
-
-
-
-
-## 📡 Endpoints da API - Motolocation
-
-> **URL base**: `http://localhost:8080` (ou IP da sua VM)
+API RESTful desenvolvida em .NET 8 para o sistema de gerenciamento e localização de motos, como projeto para a disciplina "Advanced Business Development with .NET".
 
 ---
 
-### 🏍️ MotoController (`/api/moto`)
+## Integrantes
 
-#### 🔸 POST `/api/moto`  
-Cria uma nova moto. O `rfidTag` é gerado automaticamente.
+* **RM555317** - FERNANDO FONTES
+* **RM556814** - GUILHERME JARDIM
 
-**Exemplo de body JSON:**
-```json
-{
-  "placa": "ABC1234",
-  "modelo": "Honda CBR 600RR",
-  "ano": 2024,
-  "status": "DISPONIVEL",
-  "observacoes": "Moto esportiva nova."
-}
-🔸 GET /api/moto/{id}
-Obtém uma moto específica pelo ID.
-Exemplo: GET /api/moto/1
+---
 
-🔸 PUT /api/moto/{id}
-Atualiza uma moto existente.
+## 🏛️ Justificativa da Arquitetura
 
-Body JSON (para id=1):
+O projeto foi estruturado seguindo os princípios de uma **Arquitetura em Camadas (Layered Architecture)** para garantir uma clara separação de responsabilidades, facilitando a manutenção e escalabilidade.
+
+* **`MottuLocation.API` (Apresentação):** Expõe os endpoints RESTful, lida com requisições HTTP e validação de DTOs.
+* **`MottuLocation.Application` (Aplicação):** Orquestra as operações e contém a lógica de negócio principal, utilizando o padrão de Services.
+* **`MottuLocation.Domain` (Domínio):** O núcleo do software, contendo as entidades de negócio (`Moto`, `Sensor`, `Movimentacao`) e as interfaces de repositórios.
+* **`MottuLocation.Infrastructure` (Infraestrutura):** Implementa os detalhes técnicos, como o acesso ao banco de dados Oracle com Entity Framework Core.
+
+---
+
+## 🛠️ Tecnologias e Boas Práticas
+
+* **.NET 8** e ASP.NET Core
+* **Entity Framework Core 8** com **Oracle**
+* **AutoMapper** para mapeamento de objetos
+* **Swagger/OpenAPI** para documentação interativa
+* **Boas Práticas REST:**
+    * Uso correto de verbos HTTP e Status Codes (`201 Created`, `204 No Content`, etc.).
+    * Suporte a **Paginação**, ordenação e filtro.
+    * Implementação de **HATEOAS** (Hypermedia as the Engine of Application State) para descoberta de ações.
+
+---
+
+## 🚀 Instruções de Execução
+
+### Pré-requisitos
+* **[.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)**
+* Acesso a um servidor **Oracle** com as credenciais fornecidas.
+
+### Passo 1: Clonar o Repositório
+```bash
+git clone [https://github.com/xfnd25/MottuLocation.NET.git](https://github.com/xfnd25/MottuLocation.NET.git)
+cd MottuLocation.NET
+Passo 2: Configurar a Conexão
+O arquivo appsettings.json já está configurado com as credenciais do Oracle da FIAP. Nenhuma alteração é necessária se estiver executando no ambiente da faculdade.
+
+Passo 3: Aplicar as Migrations
+Este comando irá criar todas as tabelas no banco de dados. Execute-o a partir da pasta raiz do projeto.
+
+Bash
+
+dotnet ef database update
+Passo 4: Executar a API
+Bash
+
+dotnet run --project ./
+A API estará disponível. A documentação Swagger pode ser acessada em http://localhost:<PORTA>/swagger.
+
+📖 Uso da API (Swagger e cURL)
+A documentação completa e interativa de todos os endpoints está disponível via Swagger.
+
+Exemplos de Requisições (cURL)
+1. Criar uma nova moto:
+
+Bash
+
+curl -X 'POST' \
+  'http://localhost:5188/api/Moto' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "placa": "XYZ-2025",
+  "modelo": "Honda ADV",
+  "ano": 2025,
+  "status": "DISPONIVEL"
+}'
+2. Buscar uma moto por ID (com resposta HATEOAS):
+
+Bash
+
+curl -X 'GET' 'http://localhost:5188/api/Moto/1'
+Exemplo de Resposta:
+
+JSON
+
 {
   "id": 1,
-  "placa": "ABC1234",
-  "modelo": "Honda CBR 600RR",
-  "ano": 2024,
-  "rfidTag": "RFID-XYZ789",
-  "status": "EM_MANUTENCAO",
-  "observacoes": "Problema no freio dianteiro."
+  "placa": "XYZ-2025",
+  "modelo": "Honda ADV",
+  "ano": 2025,
+  "links": [
+    {
+      "href": "http://localhost:5188/api/Moto/1",
+      "rel": "self",
+      "method": "GET"
+    },
+    {
+      "href": "http://localhost:5188/api/Moto/1",
+      "rel": "update_moto",
+      "method": "PUT"
+    },
+    {
+      "href": "http://localhost:5188/api/Moto/1",
+      "rel": "delete_moto",
+      "method": "DELETE"
+    }
+  ]
 }
-Obs: id e rfidTag devem coincidir com a moto original.
 
-🔸 DELETE /api/moto/{id}
-Remove uma moto pelo ID.
-Exemplo: DELETE /api/moto/1
 
-🔸 GET /api/moto
-Lista motos com suporte a paginação, ordenação e filtro.
 
-Exemplos:
-
-GET /api/moto
-
-GET /api/moto?page=1&size=5&sortBy=modelo
-
-GET /api/moto?placaFiltro=ABC1234
-
-📍 SensorController (/api/sensor)
-🔸 POST /api/sensor
-Cria um novo sensor.
-
-Body JSON:
-{
-  "codigo": "SENSOR001",
-  "posicaoX": 10,
-  "posicaoY": 20,
-  "descricao": "Sensor de entrada do estacionamento."
-}
-🔸 GET /api/sensor/{id}
-Busca um sensor pelo ID.
-Exemplo: GET /api/sensor/1
-
-🔸 PUT /api/sensor/{id}
-Atualiza os dados de um sensor.
-
-Body JSON (para id=1):
-{
-  "id": 1,
-  "codigo": "SENSOR001",
-  "posicaoX": 15,
-  "posicaoY": 25,
-  "descricao": "Sensor de entrada do estacionamento (atualizado)."
-}
-Obs: id e codigo devem coincidir com o sensor original.
-
-🔸 DELETE /api/sensor/{id}
-Remove um sensor pelo ID.
-Exemplo: DELETE /api/sensor/1
-
-🔸 GET /api/sensor
-Lista sensores com suporte a paginação, ordenação e filtro.
-
-Exemplos:
-
-GET /api/sensor
-
-GET /api/sensor?page=0&size=5&sortBy=codigo
-
-GET /api/sensor?codigoFiltro=SENSOR001
-
-🕘 MovimentacaoController (/api/movimentacao)
-🔸 POST /api/movimentacao
-Registra uma movimentação (simulando a leitura de RFID por sensor).
-
-Body JSON:
-{
-  "rfid": "RFID-XYZ789",
-  "sensorCodigo": "SENSOR001"
-}
-🔸 GET /api/movimentacao/moto/{motoId}
-Lista todas as movimentações de uma moto específica.
-
-Exemplos:
-
-GET /api/movimentacao/moto/1
-
-GET /api/movimentacao/moto/1?page=0&size=5&sortBy=dataHora
-
-...

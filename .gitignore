@@ -1,0 +1,6 @@
+# Arquivos de Build
+[Bb]in/
+[Oo]bj/
+
+# Arquivos de configuração local
+appsettings.Development.json
