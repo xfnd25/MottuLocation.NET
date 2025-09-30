@@ -32,7 +32,7 @@ namespace MottuLocation.Controllers
         /// <response code="201">Movimentação registrada com sucesso.</response>
         /// <response code="400">Se os dados da requisição forem inválidos.</response>
         /// <response code="404">Se a moto (via RFID) ou o sensor não forem encontrados.</response>
-        [HttpPost]
+        [HttpPost(Name = "RegistrarMovimentacao")]
         [ProducesResponseType(typeof(MovimentacaoDTO), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
@@ -45,6 +45,7 @@ namespace MottuLocation.Controllers
             try
             {
                 var movimentacaoDTO = await _movimentacaoService.RegistrarMovimentacaoAsync(request.Rfid, request.SensorCodigo);
+                GenerateMovimentacaoLinks(movimentacaoDTO);
                 return CreatedAtAction(nameof(ListarMovimentacoesPorMoto), new { motoId = movimentacaoDTO.MotoId }, movimentacaoDTO);
             }
             catch (ResourceNotFoundException ex)
@@ -63,7 +64,7 @@ namespace MottuLocation.Controllers
         /// <returns>Uma lista paginada com o histórico de movimentações da moto.</returns>
         /// <response code="200">Retorna a lista de movimentações.</response>
         /// <response code="404">Se a moto com o ID informado não for encontrada.</response>
-        [HttpGet("moto/{motoId}")]
+        [HttpGet("moto/{motoId}", Name = "ListarMovimentacoesPorMoto")]
         [ProducesResponseType(typeof(IEnumerable<MovimentacaoDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<MovimentacaoDTO>>> ListarMovimentacoesPorMoto(
@@ -75,12 +76,27 @@ namespace MottuLocation.Controllers
             try
             {
                 var movimentacoes = await _movimentacaoService.ListarMovimentacoesPorMotoAsync(motoId, page, size, sortBy);
+                foreach (var movimentacao in movimentacoes)
+                {
+                    GenerateMovimentacaoLinks(movimentacao);
+                }
                 return Ok(movimentacoes);
             }
             catch (ResourceNotFoundException ex)
             {
                 return NotFound(ex.Message);
             }
+        }
+
+        private void GenerateMovimentacaoLinks(MovimentacaoDTO movimentacao)
+        {
+            if (movimentacao == null) return;
+
+            // Link para a moto relacionada
+            movimentacao.Links.Add(new LinkDTO(Url.Link("GetMotoById", new { id = movimentacao.MotoId }), "related_moto", "GET"));
+
+            // Link para o sensor relacionado
+            movimentacao.Links.Add(new LinkDTO(Url.Link("GetSensorById", new { id = movimentacao.SensorId }), "related_sensor", "GET"));
         }
     }
 }

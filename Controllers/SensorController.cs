@@ -27,7 +27,7 @@ namespace MottuLocation.Controllers
         /// <returns>O sensor recém-criado.</returns>
         /// <response code="201">Retorna o sensor recém-criado.</response>
         /// <response code="400">Se os dados fornecidos forem inválidos.</response>
-        [HttpPost]
+        [HttpPost(Name = "CreateSensor")]
         [ProducesResponseType(typeof(SensorDTO), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<SensorDTO>> CreateSensor([FromBody] SensorDTO sensorDTO)
@@ -37,6 +37,7 @@ namespace MottuLocation.Controllers
                 return BadRequest(ModelState);
             }
             var createdSensor = await _sensorService.CreateSensorAsync(sensorDTO);
+            GenerateSensorLinks(createdSensor);
             return CreatedAtAction(nameof(GetSensorById), new { id = createdSensor.Id }, createdSensor);
         }
 
@@ -47,7 +48,7 @@ namespace MottuLocation.Controllers
         /// <returns>Os dados do sensor encontrado.</returns>
         /// <response code="200">Sensor encontrado com sucesso.</response>
         /// <response code="404">Nenhum sensor encontrado com o ID informado.</response>
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetSensorById")]
         [ProducesResponseType(typeof(SensorDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<SensorDTO>> GetSensorById(long id)
@@ -57,6 +58,7 @@ namespace MottuLocation.Controllers
             {
                 return NotFound();
             }
+            GenerateSensorLinks(sensor);
             return Ok(sensor);
         }
 
@@ -69,7 +71,7 @@ namespace MottuLocation.Controllers
         /// <response code="200">Dados do sensor atualizados com sucesso.</response>
         /// <response code="400">Se os dados fornecidos forem inválidos.</response>
         /// <response code="404">Nenhum sensor encontrado com o ID informado.</response>
-        [HttpPut("{id}")]
+        [HttpPut("{id}", Name = "UpdateSensor")]
         [ProducesResponseType(typeof(SensorDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -82,6 +84,7 @@ namespace MottuLocation.Controllers
             try
             {
                 var updatedSensor = await _sensorService.UpdateSensorAsync(id, sensorDTO);
+                GenerateSensorLinks(updatedSensor);
                 return Ok(updatedSensor);
             }
             catch (ResourceNotFoundException)
@@ -97,7 +100,7 @@ namespace MottuLocation.Controllers
         /// <returns>Nenhum conteúdo.</returns>
         /// <response code="204">Sensor removido com sucesso.</response>
         /// <response code="404">Nenhum sensor encontrado com o ID informado.</response>
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}", Name = "DeleteSensor")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteSensor(long id)
@@ -122,7 +125,7 @@ namespace MottuLocation.Controllers
         /// <param name="codigoFiltro">Filtra os sensores pelo código informado.</param>
         /// <returns>Uma lista paginada de sensores.</returns>
         /// <response code="200">Retorna a lista de sensores.</response>
-        [HttpGet]
+        [HttpGet(Name = "ListSensors")]
         [ProducesResponseType(typeof(IEnumerable<SensorDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<SensorDTO>>> ListSensors(
             [FromQuery] int page = 0,
@@ -131,7 +134,20 @@ namespace MottuLocation.Controllers
             [FromQuery] string? codigoFiltro = null)
         {
             var sensors = await _sensorService.ListSensorsAsync(page, size, sortBy, codigoFiltro);
+            foreach (var sensor in sensors)
+            {
+                GenerateSensorLinks(sensor);
+            }
             return Ok(sensors);
+        }
+
+        private void GenerateSensorLinks(SensorDTO sensor)
+        {
+            if (sensor == null) return;
+
+            sensor.Links.Add(new LinkDTO(Url.Link("GetSensorById", new { id = sensor.Id }), "self", "GET"));
+            sensor.Links.Add(new LinkDTO(Url.Link("UpdateSensor", new { id = sensor.Id }), "update_sensor", "PUT"));
+            sensor.Links.Add(new LinkDTO(Url.Link("DeleteSensor", new { id = sensor.Id }), "delete_sensor", "DELETE"));
         }
     }
 }
