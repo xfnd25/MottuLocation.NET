@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MottuLocation.DTOs
 {
-    public class SensorDTO
+    public class SensorDTO : LinkedResourceBaseDTO
     {
         public long Id { get; set; }
 

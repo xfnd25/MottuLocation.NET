@@ -64,6 +64,14 @@ Bash
 dotnet run --project ./
 A API estará disponível. A documentação Swagger pode ser acessada em http://localhost:<PORTA>/swagger.
 
+### 🧪 Executando os Testes
+Para rodar a suíte de testes de unidade e garantir que tudo está funcionando como esperado, execute o seguinte comando na raiz do projeto:
+```bash
+dotnet test
+```
+
+---
+
 📖 Uso da API (Swagger e cURL)
 A documentação completa e interativa de todos os endpoints está disponível via Swagger.
 

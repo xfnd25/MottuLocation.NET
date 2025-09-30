@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MottuLocation.DTOs
 {
-    public class MovimentacaoDTO
+    public class MovimentacaoDTO : LinkedResourceBaseDTO
     {
         public long? Id { get; set; }
 

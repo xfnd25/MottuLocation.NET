@@ -23,7 +23,7 @@ namespace MottuLocation.Controllers
         /// <summary>
         /// Cria uma nova moto no sistema.
         /// </summary>
-        [HttpPost(Name = "CreateMoto")] // Adicionado Name
+        [HttpPost(Name = "CreateMoto")]
         [ProducesResponseType(typeof(MotoDTO), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<MotoDTO>> CreateMoto([FromBody] MotoDTO motoDTO)
@@ -34,7 +34,6 @@ namespace MottuLocation.Controllers
             }
             var createdMoto = await _motoService.CreateMotoAsync(motoDTO);
             
-            // Adiciona links HATEOAS ao DTO criado antes de retornar
             GenerateMotoLinks(createdMoto);
 
             return CreatedAtAction(nameof(GetMotoById), new { id = createdMoto.Id }, createdMoto);
@@ -43,7 +42,7 @@ namespace MottuLocation.Controllers
         /// <summary>
         /// Busca uma moto específica pelo seu ID.
         /// </summary>
-        [HttpGet("{id}", Name = "GetMotoById")] // Adicionado Name
+        [HttpGet("{id}", Name = "GetMotoById")]
         [ProducesResponseType(typeof(MotoDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<MotoDTO>> GetMotoById(long id)
@@ -54,7 +53,6 @@ namespace MottuLocation.Controllers
                 return NotFound();
             }
 
-            // LÓGICA HATEOAS ADICIONADA AQUI
             GenerateMotoLinks(moto);
             
             return Ok(moto);
@@ -63,13 +61,12 @@ namespace MottuLocation.Controllers
         /// <summary>
         /// Atualiza os dados de uma moto existente.
         /// </summary>
-        [HttpPut("{id}", Name = "UpdateMoto")] // Adicionado Name
+        [HttpPut("{id}", Name = "UpdateMoto")]
         [ProducesResponseType(typeof(MotoDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<MotoDTO>> UpdateMoto(long id, [FromBody] MotoDTO motoDTO)
         {
-            // (O código interno do método continua o mesmo)
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -77,7 +74,7 @@ namespace MottuLocation.Controllers
             try
             {
                 var updatedMoto = await _motoService.UpdateMotoAsync(id, motoDTO);
-                GenerateMotoLinks(updatedMoto); // Adiciona links na resposta de sucesso
+                GenerateMotoLinks(updatedMoto);
                 return Ok(updatedMoto);
             }
             catch (ResourceNotFoundException)
@@ -89,12 +86,11 @@ namespace MottuLocation.Controllers
         /// <summary>
         /// Remove uma moto do sistema.
         /// </summary>
-        [HttpDelete("{id}", Name = "DeleteMoto")] // Adicionado Name
+        [HttpDelete("{id}", Name = "DeleteMoto")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteMoto(long id)
         {
-            // (O código interno do método continua o mesmo)
             try
             {
                 await _motoService.DeleteMotoAsync(id);
@@ -109,7 +105,7 @@ namespace MottuLocation.Controllers
         /// <summary>
         /// Lista as motos com suporte a paginação, ordenação e filtro.
         /// </summary>
-        [HttpGet(Name = "ListMotos")] // Adicionado Name
+        [HttpGet(Name = "ListMotos")]
         [ProducesResponseType(typeof(IEnumerable<MotoDTO>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<MotoDTO>>> ListMotos(
             [FromQuery] int page = 0,
@@ -119,7 +115,6 @@ namespace MottuLocation.Controllers
         {
             var motos = await _motoService.ListMotosAsync(page, size, sortBy, placaFiltro);
             
-            // Adiciona links para cada moto na lista
             foreach (var moto in motos)
             {
                 GenerateMotoLinks(moto);
@@ -128,20 +123,12 @@ namespace MottuLocation.Controllers
             return Ok(motos);
         }
 
-        // ===============================================================
-        // MÉTODO PRIVADO PARA GERAR OS LINKS (para não repetir código)
-        // ===============================================================
         private void GenerateMotoLinks(MotoDTO moto)
         {
             if (moto == null) return;
 
-            // Link para o próprio recurso
             moto.Links.Add(new LinkDTO(Url.Link("GetMotoById", new { id = moto.Id }), "self", "GET"));
-            
-            // Link para atualizar o recurso
             moto.Links.Add(new LinkDTO(Url.Link("UpdateMoto", new { id = moto.Id }), "update_moto", "PUT"));
-
-            // Link para deletar o recurso
             moto.Links.Add(new LinkDTO(Url.Link("DeleteMoto", new { id = moto.Id }), "delete_moto", "DELETE"));
         }
     }
