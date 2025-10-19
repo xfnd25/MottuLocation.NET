@@ -1,5 +1,3 @@
-Markdown
-
 # API - Mottu Location .NET
 
 [![Status do Projeto](https://img.shields.io/badge/status-concluído-green)](https://github.com/xfnd25/MottuLocation.NET)
@@ -32,6 +30,9 @@ O projeto foi estruturado seguindo os princípios de uma **Arquitetura em Camada
 * **Entity Framework Core 8** com **Oracle**
 * **AutoMapper** para mapeamento de objetos
 * **Swagger/OpenAPI** para documentação interativa
+* **Versionamento de API**
+* **Segurança de API com API Key**
+* **Health Checks**
 * **Boas Práticas REST:**
     * Uso correto de verbos HTTP e Status Codes (`201 Created`, `204 No Content`, etc.).
     * Suporte a **Paginação**, ordenação e filtro.
@@ -49,25 +50,59 @@ O projeto foi estruturado seguindo os princípios de uma **Arquitetura em Camada
 ```bash
 git clone [https://github.com/xfnd25/MottuLocation.NET.git](https://github.com/xfnd25/MottuLocation.NET.git)
 cd MottuLocation.NET
-Passo 2: Configurar a Conexão
-O arquivo appsettings.json já está configurado com as credenciais do Oracle da FIAP. Nenhuma alteração é necessária se estiver executando no ambiente da faculdade.
+```
+### Passo 2: Configurar a Conexão
+O arquivo `appsettings.json` já está configurado com as credenciais do Oracle da FIAP. Nenhuma alteração é necessária se estiver executando no ambiente da faculdade.
 
-Passo 3: Aplicar as Migrations
+### Passo 3: Aplicar as Migrations
 Este comando irá criar todas as tabelas no banco de dados. Execute-o a partir da pasta raiz do projeto.
 
-Bash
-
+```bash
 dotnet ef database update
-Passo 4: Executar a API
-Bash
+```
 
+### Passo 4: Executar a API
+```bash
 dotnet run --project ./
+```
 A API estará disponível. A documentação Swagger pode ser acessada em http://localhost:<PORTA>/swagger.
 
-### 🧪 Executando os Testes
-Para rodar a suíte de testes de unidade e garantir que tudo está funcionando como esperado, execute o seguinte comando na raiz do projeto:
+---
+
+## 🧪 Executando os Testes
+Para rodar a suíte de testes de unidade e integração, execute o seguinte comando na raiz do projeto:
 ```bash
 dotnet test
+```
+
+---
+
+## ✨ Novas Funcionalidades
+
+### Versionamento de API
+A API agora suporta versionamento. A versão atual é a `v1`. Para acessar os endpoints, utilize o prefixo `/api/v1/` na URL.
+
+**Exemplo:**
+```bash
+curl -X 'GET' 'http://localhost:5188/api/v1/moto/1'
+```
+
+### Segurança com API Key
+Todos os endpoints agora são protegidos por uma chave de API. Para acessar a API, você deve incluir a chave no header da requisição, com o nome `X-API-KEY`.
+
+**Exemplo:**
+```bash
+curl -X 'GET' 'http://localhost:5188/api/v1/moto/1' \
+  -H 'X-API-KEY: MinhaChaveDeApiSuperSecreta'
+```
+A chave de API padrão está configurada no arquivo `appsettings.json`.
+
+### Health Checks
+A API agora expõe um endpoint de Health Check em `/health`. Este endpoint pode ser utilizado para monitorar a saúde da aplicação e de suas dependências (como o banco de dados).
+
+**Exemplo:**
+```bash
+curl -X 'GET' 'http://localhost:5188/health'
 ```
 
 ---
@@ -78,26 +113,27 @@ A documentação completa e interativa de todos os endpoints está disponível v
 Exemplos de Requisições (cURL)
 1. Criar uma nova moto:
 
-Bash
-
+```bash
 curl -X 'POST' \
-  'http://localhost:5188/api/Moto' \
+  'http://localhost:5188/api/v1/moto' \
   -H 'Content-Type: application/json' \
+  -H 'X-API-KEY: MinhaChaveDeApiSuperSecreta' \
   -d '{
   "placa": "XYZ-2025",
   "modelo": "Honda ADV",
   "ano": 2025,
   "status": "DISPONIVEL"
 }'
+```
 2. Buscar uma moto por ID (com resposta HATEOAS):
 
-Bash
-
-curl -X 'GET' 'http://localhost:5188/api/Moto/1'
+```bash
+curl -X 'GET' 'http://localhost:5188/api/v1/moto/1' \
+  -H 'X-API-KEY: MinhaChaveDeApiSuperSecreta'
+```
 Exemplo de Resposta:
 
-JSON
-
+```json
 {
   "id": 1,
   "placa": "XYZ-2025",
@@ -105,22 +141,20 @@ JSON
   "ano": 2025,
   "links": [
     {
-      "href": "http://localhost:5188/api/Moto/1",
+      "href": "http://localhost:5188/api/v1/moto/1",
       "rel": "self",
       "method": "GET"
     },
     {
-      "href": "http://localhost:5188/api/Moto/1",
+      "href": "http://localhost:5188/api/v1/moto/1",
       "rel": "update_moto",
       "method": "PUT"
     },
     {
-      "href": "http://localhost:5188/api/Moto/1",
+      "href": "http://localhost:5188/api/v1/moto/1",
       "rel": "delete_moto",
       "method": "DELETE"
     }
   ]
 }
-
-
-
+```

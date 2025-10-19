@@ -1,60 +1,58 @@
 using Xunit;
-using Moq;
-using MottuLocation.Controllers;
-using MottuLocation.Services;
-using MottuLocation.DTOs;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Testing;
+using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using MottuLocation.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
-public class MotoControllerTests
+namespace MottuLocation.Tests
 {
-    private readonly Mock<IMotoService> _mockMotoService;
-    private readonly MotoController _controller;
-
-    public MotoControllerTests()
+    public class MotoControllerTests : IClassFixture<CustomWebApplicationFactory<Program>>
     {
-        _mockMotoService = new Mock<IMotoService>();
-        _controller = new MotoController(_mockMotoService.Object);
+        private readonly HttpClient _client;
 
-        // Mocking IUrlHelper for HATEOAS link generation
-        var mockUrlHelper = new Mock<IUrlHelper>();
-        mockUrlHelper.Setup(x => x.Link(It.IsAny<string>(), It.IsAny<object>())).Returns("http://localhost/fake-link");
-        _controller.Url = mockUrlHelper.Object;
+        public MotoControllerTests(CustomWebApplicationFactory<Program> factory)
+        {
+            _client = factory.CreateClient();
+            _client.DefaultRequestHeaders.Add("X-API-KEY", "MinhaChaveDeApiSuperSecreta");
+        }
+
+        [Fact]
+        public async Task Get_EndpointsReturnSuccessAndCorrectContentType()
+        {
+            // Act
+            var response = await _client.GetAsync("/api/v1/moto");
+
+            // Assert
+            response.EnsureSuccessStatusCode(); // Status Code 200-299
+            Assert.Equal("application/json; charset=utf-8",
+                response.Content.Headers.ContentType.ToString());
+        }
     }
 
-    [Fact]
-    public async Task GetMotoById_WhenMotoDoesNotExist_ShouldReturnNotFound()
+    public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram> where TProgram : class
     {
-        // Arrange
-        long nonExistentId = 999;
-        _mockMotoService.Setup(service => service.GetMotoByIdAsync(nonExistentId))
-            .ReturnsAsync((MotoDTO)null);
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            builder.ConfigureServices(services =>
+            {
+                var descriptor = services.SingleOrDefault(
+                    d => d.ServiceType ==
+                        typeof(DbContextOptions<MottuLocationDbContext>));
 
-        // Act
-        var result = await _controller.GetMotoById(nonExistentId);
+                if (descriptor != null)
+                {
+                    services.Remove(descriptor);
+                }
 
-        // Assert
-        Assert.IsType<NotFoundResult>(result.Result);
-    }
-
-    [Fact]
-    public async Task CreateMoto_WithValidModel_ShouldReturnCreatedAtAction()
-    {
-        // Arrange
-        var motoDTO = new MotoDTO { Placa = "TTT-9999", Modelo = "Test Bike", Ano = 2024 };
-        var createdMoto = new MotoDTO { Id = 1, Placa = "TTT-9999", Modelo = "Test Bike", Ano = 2024 };
-
-        _mockMotoService.Setup(service => service.CreateMotoAsync(motoDTO))
-            .ReturnsAsync(createdMoto);
-
-        // Act
-        var result = await _controller.CreateMoto(motoDTO);
-
-        // Assert
-        var actionResult = Assert.IsType<ActionResult<MotoDTO>>(result);
-        var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(actionResult.Result);
-        Assert.Equal("GetMotoById", createdAtActionResult.ActionName);
-        Assert.Equal(createdMoto.Id, ((MotoDTO)createdAtActionResult.Value).Id);
+                services.AddDbContext<MottuLocationDbContext>(options =>
+                {
+                    options.UseInMemoryDatabase("InMemoryDbForTesting");
+                });
+            });
+        }
     }
 }

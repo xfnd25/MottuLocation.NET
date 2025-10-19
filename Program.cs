@@ -8,6 +8,12 @@ using MottuLocation.Services;
 using MottuLocation.Profiles;
 using System.IO; // Adicione esta linha
 using System; // Adicione esta linha
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
+using MottuLocation.Middleware;
+using MottuLocation.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,15 +21,33 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
+// Configuração do Versionamento
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = new UrlSegmentApiVersionReader();
+}).AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+
 // ATUALIZAÇÃO DO SWAGGER ABAIXO
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    var apiVersionDescriptionProvider = builder.Services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
+
+    foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
     {
-        Title = "Mottu Location API",
-        Version = "v1",
-        Description = "API para gerenciamento e localização de motos, sensores e suas movimentações."
-    });
+        options.SwaggerDoc(description.GroupName, new Microsoft.OpenApi.Models.OpenApiInfo
+        {
+            Title = "Mottu Location API",
+            Version = description.ApiVersion.ToString(),
+            Description = "API para gerenciamento e localização de motos, sensores e suas movimentações."
+        });
+    }
 
     // Configura o Swagger para usar o arquivo XML gerado pelos comentários
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -42,9 +66,14 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IMotoRepository, MotoRepository>();
 builder.Services.AddScoped<ISensorRepository, SensorRepository>();
 builder.Services.AddScoped<IMovimentacaoRepository, MovimentacaoRepository>();
+
 builder.Services.AddScoped<IMotoService, MotoService>();
 builder.Services.AddScoped<ISensorService, SensorService>();
 builder.Services.AddScoped<IMovimentacaoService, MovimentacaoService>();
+
+// Configurando o Health Check
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<MottuLocation.Data.MottuLocationDbContext>("Oracle DB");
 
 var app = builder.Build();
 
@@ -52,10 +81,24 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+        foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+        {
+            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
+        }
+    });
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ApiKeyAuthMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 app.Run();
+
+public partial class Program { }
