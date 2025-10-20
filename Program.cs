@@ -6,14 +6,13 @@ using MottuLocation.Data;
 using MottuLocation.Repositories;
 using MottuLocation.Services;
 using MottuLocation.Profiles;
-using System.IO; // Adicione esta linha
-using System; // Adicione esta linha
+using System.IO;
+using System;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using MottuLocation.Middleware;
-using MottuLocation.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -96,6 +95,9 @@ builder.Services.AddScoped<IMotoService, MotoService>();
 builder.Services.AddScoped<ISensorService, SensorService>();
 builder.Services.AddScoped<IMovimentacaoService, MovimentacaoService>();
 
+// Registrando o novo serviço de Machine Learning
+builder.Services.AddSingleton<IPredictionService, PredictionService>();
+
 // Configurando o Health Check
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<MottuLocation.Data.MottuLocationDbContext>("Oracle DB");
@@ -116,14 +118,21 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
-app.UseMiddleware<ApiKeyAuthMiddleware>();
-app.UseAuthorization();
-app.MapControllers();
+// CORREÇÃO: Mapeia o endpoint de Health Check ANTES da segurança para que ele seja público
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
+
+app.UseHttpsRedirection();
+
+// O middleware de segurança agora é aplicado DEPOIS do Health Check, protegendo os outros endpoints
+app.UseMiddleware<ApiKeyAuthMiddleware>();
+
+app.UseAuthorization();
+app.MapControllers();
+
 app.Run();
 
 public partial class Program { }
+

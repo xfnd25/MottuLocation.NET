@@ -12,6 +12,7 @@ namespace MottuLocation.DTOs
         /// <summary>
         /// Placa de identificação da moto (deve ser única).
         /// </summary>
+        /// <example>BRA2E19</example>
         [Required(ErrorMessage = "A placa é obrigatória.")]
         [MaxLength(255, ErrorMessage = "A placa não pode exceder 255 caracteres.")]
         public string Placa { get; set; } = string.Empty;
@@ -19,12 +20,14 @@ namespace MottuLocation.DTOs
         /// <summary>
         /// Modelo da moto.
         /// </summary>
+        /// <example>Honda CG 160</example>
         [Required(ErrorMessage = "O modelo é obrigatório.")]
         public string Modelo { get; set; } = string.Empty;
 
         /// <summary>
         /// Ano de fabricação da moto.
         /// </summary>
+        /// <example>2024</example>
         [Range(2020, int.MaxValue, ErrorMessage = "O ano deve ser maior ou igual a 2020.")]
         public int Ano { get; set; }
 
@@ -37,11 +40,13 @@ namespace MottuLocation.DTOs
         /// <summary>
         /// Status atual da moto (ex: DISPONIVEL, EM_MANUTENCAO).
         /// </summary>
+        /// <example>DISPONIVEL</example>
         public string Status { get; set; } = string.Empty;
 
         /// <summary>
         /// Observações gerais sobre a moto.
         /// </summary>
+        /// <example>Revisão feita em Outubro/2025</example>
         public string Observacoes { get; set; } = string.Empty;
     }
 }
