@@ -5,11 +5,13 @@ using MottuLocation.Exceptions;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Asp.Versioning;
 
 namespace MottuLocation.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     [Produces("application/json")]
     public class MotoController : ControllerBase
     {

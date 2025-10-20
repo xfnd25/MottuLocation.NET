@@ -6,38 +6,53 @@ using MottuLocation.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using MottuLocation.Exceptions;
-using System.Collections.Generic;
 
-public class MovimentacaoControllerTests
+namespace MottuLocation.Tests
 {
-    private readonly Mock<IMovimentacaoService> _mockMovimentacaoService;
-    private readonly MovimentacaoController _controller;
-
-    public MovimentacaoControllerTests()
+    public class MovimentacaoControllerTests
     {
-        _mockMovimentacaoService = new Mock<IMovimentacaoService>();
-        _controller = new MovimentacaoController(_mockMovimentacaoService.Object);
+        private readonly Mock<IMovimentacaoService> _mockMovimentacaoService;
+        private readonly MovimentacaoController _controller;
 
-        // Mocking IUrlHelper for HATEOAS link generation
-        var mockUrlHelper = new Mock<IUrlHelper>();
-        mockUrlHelper.Setup(x => x.Link(It.IsAny<string>(), It.IsAny<object>())).Returns("http://localhost/fake-link");
-        _controller.Url = mockUrlHelper.Object;
-    }
+        public MovimentacaoControllerTests()
+        {
+            _mockMovimentacaoService = new Mock<IMovimentacaoService>();
+            _controller = new MovimentacaoController(_mockMovimentacaoService.Object);
+            var mockUrlHelper = new Mock<IUrlHelper>();
+            mockUrlHelper.Setup(x => x.Link(It.IsAny<string>(), It.IsAny<object>())).Returns("http://localhost");
+            _controller.Url = mockUrlHelper.Object;
+        }
 
-    [Fact]
-    public async Task ListarMovimentacoesPorMoto_WhenMotoNotFound_ShouldReturnNotFound()
-    {
-        // Arrange
-        long nonExistentMotoId = 777;
-        _mockMovimentacaoService.Setup(service => service.ListarMovimentacoesPorMotoAsync(nonExistentMotoId, 0, 10, "dataHora"))
-            .ThrowsAsync(new ResourceNotFoundException("Moto não encontrada."));
+        [Fact]
+        public async Task RegistrarMovimentacao_ReturnsCreatedAtAction_WhenSuccessful()
+        {
+            // Arrange
+            var request = new MovimentacaoRequest { Rfid = "123", SensorCodigo = "ABC" };
+            var movimentacaoDTO = new MovimentacaoDTO { Id = 1, MotoId = 1, SensorId = 1 };
+            _mockMovimentacaoService.Setup(s => s.RegistrarMovimentacaoAsync(request.Rfid, request.SensorCodigo))
+                .ReturnsAsync(movimentacaoDTO);
 
-        // Act
-        var result = await _controller.ListarMovimentacoesPorMoto(nonExistentMotoId);
+            // Act
+            var result = await _controller.RegistrarMovimentacao(request);
 
-        // Assert
-        var actionResult = Assert.IsType<ActionResult<IEnumerable<MovimentacaoDTO>>>(result);
-        var notFoundResult = Assert.IsType<NotFoundObjectResult>(actionResult.Result);
-        Assert.Equal("Moto não encontrada.", notFoundResult.Value);
+            // Assert
+            var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result.Result);
+            Assert.Equal(nameof(MovimentacaoController.ListarMovimentacoesPorMoto), createdAtActionResult.ActionName);
+        }
+
+        [Fact]
+        public async Task RegistrarMovimentacao_ReturnsNotFound_WhenResourceNotFound()
+        {
+            // Arrange
+            var request = new MovimentacaoRequest { Rfid = "123", SensorCodigo = "ABC" };
+            _mockMovimentacaoService.Setup(s => s.RegistrarMovimentacaoAsync(request.Rfid, request.SensorCodigo))
+                .ThrowsAsync(new ResourceNotFoundException("Resource not found"));
+
+            // Act
+            var result = await _controller.RegistrarMovimentacao(request);
+
+            // Assert
+            Assert.IsType<NotFoundObjectResult>(result.Result);
+        }
     }
 }
